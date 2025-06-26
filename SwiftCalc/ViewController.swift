@@ -1,30 +1,27 @@
-//
-//  ViewController.swift
-//  SwiftCalc
-//
-//  Created by Aidan Gleeson on 26/06/2025.
-//
-
 import UIKit
 
 class ViewController: UIViewController {
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        // Do any additional setup after loading the view.
+    @IBOutlet var allButtons: [UIButton]!
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        for button in allButtons {
+            button.layer.cornerRadius = button.frame.height / 2
+            button.layer.masksToBounds = true
+        }
     }
 
     @IBAction func numberPressed(_ sender: UIButton) {
-        if let number = sender .currentTitle {
+        if let number = sender.currentTitle {
             print("Number pressed: \(number)")
         }
     }
-    
+
     @IBAction func operatorPressed(_ sender: UIButton) {
         if let operation = sender.currentTitle {
             print("Operator pressed: \(operation)")
         }
     }
-    
 }
-
