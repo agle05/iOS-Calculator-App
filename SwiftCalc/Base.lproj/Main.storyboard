@@ -339,6 +339,7 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="clearButton" destination="PmD-vG-jR9" id="4X5-S4-edf"/>
                         <outlet property="displayLabel" destination="glG-7A-2ed" id="Y0Y-6n-CSE"/>
                         <outletCollection property="allButtons" destination="PmD-vG-jR9" collectionClass="NSMutableArray" id="cZV-bG-wot"/>
                         <outletCollection property="allButtons" destination="Q0r-4n-8T7" collectionClass="NSMutableArray" id="n0i-i7-eus"/>

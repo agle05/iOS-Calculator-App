@@ -6,10 +6,27 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var displayLabel: UILabel!
     
+    @IBOutlet weak var clearButton: UIButton!
+    
     private var isTypingNumber = false        // Are we in the middle of typing a number?
     private var firstNumber: Double = 0       // First operand
     private var currentOperator: String?      // Current operator pressed (+, −, etc)
     private var expression = ""
+    
+    private var acTitle: NSAttributedString {
+        NSAttributedString(string: "AC", attributes: [
+            .font: UIFont.systemFont(ofSize: 30, weight: .bold),
+            .foregroundColor: UIColor.black
+        ])
+    }
+
+    private var ceTitle: NSAttributedString {
+        NSAttributedString(string: "CE", attributes: [
+            .font: UIFont.systemFont(ofSize: 30, weight: .bold),
+            .foregroundColor: UIColor.black
+        ])
+    }
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,21 +48,45 @@ class ViewController: UIViewController {
         expression += number
         displayLabel.text = expression
         isTypingNumber = true
+        
+        // change AC to CE
+        clearButton.setAttributedTitle(ceTitle, for: .normal)
+
+
     }
     
     @IBAction func operatorPressed(_ sender: UIButton) {
         guard let operation = sender.configuration?.title else { return }
         print("Operator pressed: \(operation)")
-
+            
             if operation == "AC" {
+                // Full clear
                 expression = ""
                 displayLabel.text = "0"
                 isTypingNumber = false
+                
+                // Reset button title to AC just to be safe
+                clearButton.setAttributedTitle(acTitle, for: .normal)
+
+                return
+            }
+            
+            if operation == "CE" {
+                print("CE pressed, clearing last entry...")
+                removeLastNumberEntry()
+                print("Expression after CE:", expression)
+                if expression.isEmpty {
+                    clearButton.setAttributedTitle(acTitle, for: .normal)
+
+                    print("Expression empty, reset button to AC")
+                }
                 return
             }
 
+
             if operation == "=" {
                 calculateResult()
+                clearButton.setAttributedTitle(acTitle, for: .normal)
                 return
             }
 
@@ -115,5 +156,25 @@ class ViewController: UIViewController {
         // If no operator found or parse failed
         displayLabel.text = expression
     }
+    
+    private func removeLastNumberEntry() {
+        guard !expression.isEmpty else {
+            displayLabel.text = "0"
+            return
+        }
+
+        // Remove the last character (digit, operator, etc.)
+        expression.removeLast()
+
+        // If expression is now empty, reset to 0 and return AC mode
+        if expression.isEmpty {
+            displayLabel.text = "0"
+            clearButton.setAttributedTitle(acTitle, for: .normal)
+        } else {
+            displayLabel.text = expression
+        }
+    }
+
+
     
 }
