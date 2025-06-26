@@ -12,6 +12,7 @@ class ViewController: UIViewController {
     private var firstNumber: Double = 0       // First operand
     private var currentOperator: String?      // Current operator pressed (+, −, etc)
     private var expression = ""
+    private var justCalculated = false
     
     private var acTitle: NSAttributedString {
         NSAttributedString(string: "AC", attributes: [
@@ -45,6 +46,15 @@ class ViewController: UIViewController {
     @IBAction func numberPressed(_ sender: UIButton) {
         guard let number = sender.configuration?.title else { return }
         
+        if justCalculated {
+            // Start new expression
+            expression = number
+            displayLabel.text = expression
+            justCalculated = false
+            clearButton.setAttributedTitle(ceTitle, for: .normal)
+            return
+        }
+        
         expression += number
         displayLabel.text = expression
         isTypingNumber = true
@@ -59,62 +69,73 @@ class ViewController: UIViewController {
         guard let operation = sender.configuration?.title else { return }
         print("Operator pressed: \(operation)")
             
-            if operation == "AC" {
-                // Full clear
-                expression = ""
-                displayLabel.text = "0"
-                isTypingNumber = false
-                
-                // Reset button title to AC just to be safe
-                clearButton.setAttributedTitle(acTitle, for: .normal)
-
-                return
-            }
-            
-            if operation == "CE" {
-                print("CE pressed, clearing last entry...")
-                removeLastNumberEntry()
-                print("Expression after CE:", expression)
-                if expression.isEmpty {
-                    clearButton.setAttributedTitle(acTitle, for: .normal)
-
-                    print("Expression empty, reset button to AC")
-                }
-                return
-            }
-
-
-            if operation == "=" {
-                calculateResult()
-                clearButton.setAttributedTitle(acTitle, for: .normal)
-                return
-            }
-
-            // Handle operators (+, −, ×, ÷)
-            if expression.isEmpty {
-                // Only allow minus at start for negative number
-                if operation == "−" {
-                    expression += operation
-                    displayLabel.text = expression
-                }
-                return
-            }
-
-            if let lastChar = expression.last, isOperator(String(lastChar)) {
-                if operation == "−" && (lastChar == "×" || lastChar == "÷") {
-                    // Allow minus after multiply/divide for negative number
-                    expression += operation
-                } else {
-                    // Replace last operator with the new one
-                    expression = String(expression.dropLast()) + operation
-                }
-            } else {
-                // Append operator normally
-                expression += operation
-            }
-
-            displayLabel.text = expression
+        if operation == "AC" {
+            // Full clear
+            expression = ""
+            displayLabel.text = "0"
             isTypingNumber = false
+            
+            // Reset button title to AC just to be safe
+            clearButton.setAttributedTitle(acTitle, for: .normal)
+
+            return
+        }
+        
+        if operation == "CE" {
+            print("CE pressed, clearing last entry...")
+            removeLastNumberEntry()
+            print("Expression after CE:", expression)
+            if expression.isEmpty {
+                clearButton.setAttributedTitle(acTitle, for: .normal)
+
+                print("Expression empty, reset button to AC")
+            }
+            return
+        }
+
+        if justCalculated {
+            // Append operator to result
+            justCalculated = false
+            if let resultText = displayLabel.text {
+                expression = resultText + operation
+                displayLabel.text = expression
+                clearButton.setAttributedTitle(ceTitle, for: .normal)
+                return
+            }
+        }
+
+        if operation == "=" {
+            calculateResult()
+            justCalculated = true
+            clearButton.setAttributedTitle(acTitle, for: .normal)
+            return
+        }
+
+        // Handle operators (+, −, ×, ÷)
+        if expression.isEmpty {
+            // Only allow minus at start for negative number
+            if operation == "−" {
+                expression += operation
+                displayLabel.text = expression
+            }
+            return
+        }
+
+        if let lastChar = expression.last, isOperator(String(lastChar)) {
+            if operation == "−" && (lastChar == "×" || lastChar == "÷") {
+                // Allow minus after multiply/divide for negative number
+                expression += operation
+            } else {
+                // Replace last operator with the new one
+                expression = String(expression.dropLast()) + operation
+            }
+        } else {
+            // Append operator normally
+            expression += operation
+        }
+
+        displayLabel.text = expression
+        isTypingNumber = false
     }
     
     private func formatResult(_ result: Double) -> String {
