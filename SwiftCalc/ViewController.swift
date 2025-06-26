@@ -26,7 +26,6 @@ class ViewController: UIViewController {
     }
     
     @IBAction func numberPressed(_ sender: UIButton) {
-        print("Button tapped")
         guard let number = sender.configuration?.title else { return }
         
         expression += number
@@ -36,66 +35,45 @@ class ViewController: UIViewController {
     
     @IBAction func operatorPressed(_ sender: UIButton) {
         guard let operation = sender.configuration?.title else { return }
-        
-        if operation == "AC" {
-            expression = ""
-            displayLabel.text = "0"
-            isTypingNumber = false
-            firstNumber = 0
-            currentOperator = nil
-        } else if operation == "=" {
-            // Evaluate expression (you can use your existing logic or expand it)
-            // For now, let's just compute basic 2-number operation as before
-            
-            // Parse expression here or keep your previous calculation logic
-            calculateResult()
-            
-        } else {
+        print("Operator pressed: \(operation)")
+
+            if operation == "AC" {
+                expression = ""
+                displayLabel.text = "0"
+                isTypingNumber = false
+                return
+            }
+
+            if operation == "=" {
+                calculateResult()
+                return
+            }
+
+            // Handle operators (+, −, ×, ÷)
             if expression.isEmpty {
-                // Don't allow operator at start except minus (to allow negative numbers)
+                // Only allow minus at start for negative number
                 if operation == "−" {
                     expression += operation
                     displayLabel.text = expression
                 }
                 return
             }
-            
+
             if let lastChar = expression.last, isOperator(String(lastChar)) {
-                // If last char is operator
                 if operation == "−" && (lastChar == "×" || lastChar == "÷") {
-                    // Allow minus after multiply/divide
+                    // Allow minus after multiply/divide for negative number
                     expression += operation
                 } else {
-                    // Replace last operator with new operator
+                    // Replace last operator with the new one
                     expression = String(expression.dropLast()) + operation
                 }
             } else {
                 // Append operator normally
                 expression += operation
             }
+
             displayLabel.text = expression
             isTypingNumber = false
-        }
-        
-        if operation == "AC" {
-            displayLabel.text = "0"
-            isTypingNumber = false
-            firstNumber = 0
-            currentOperator = nil
-        } else if operation == "=" {
-            guard let text = displayLabel.text,
-                  let secondNumber = Double(text),
-                  let op = currentOperator else { return }
-            
-            calculateResult()
-            
-        } else {
-            if let currentText = displayLabel.text, let num = Double(currentText) {
-                firstNumber = num
-                currentOperator = operation
-                isTypingNumber = false
-            }
-        }
     }
     
     private func formatResult(_ result: Double) -> String {
@@ -112,7 +90,7 @@ class ViewController: UIViewController {
     
     private func calculateResult() {
         // Find first operator (left to right)
-        for op in ["+", "−", "×", "÷"] {
+        for op in ["+", "-", "×", "÷"] {
             if let range = expression.range(of: op) {
                 let firstPart = String(expression[..<range.lowerBound])
                 let secondPart = String(expression[range.upperBound...])
@@ -122,7 +100,7 @@ class ViewController: UIViewController {
                     var result: Double = 0
                     switch op {
                     case "+": result = firstNum + secondNum
-                    case "−": result = firstNum - secondNum
+                    case "-": result = firstNum - secondNum
                     case "×": result = firstNum * secondNum
                     case "÷": result = secondNum != 0 ? firstNum / secondNum : 0
                     default: break

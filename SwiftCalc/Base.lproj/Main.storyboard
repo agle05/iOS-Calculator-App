@@ -35,6 +35,9 @@
                                                     <fontDescription key="titleFontDescription" type="boldSystem" pointSize="30"/>
                                                     <color key="baseForegroundColor" systemColor="labelColor"/>
                                                 </buttonConfiguration>
+                                                <connections>
+                                                    <action selector="operatorPressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="CtN-uM-kHX"/>
+                                                </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Q0r-4n-8T7">
                                                 <rect key="frame" x="90.333333333333343" y="0.0" width="82.333333333333343" height="82.333333333333329"/>
@@ -131,7 +134,7 @@
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="l2e-r8-fN6">
                                                 <rect key="frame" x="270.66666666666669" y="0.0" width="82.333333333333314" height="82.333333333333329"/>
                                                 <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="plain" title="x">
+                                                <buttonConfiguration key="configuration" style="plain" title="×">
                                                     <backgroundConfiguration key="background">
                                                         <color key="backgroundColor" systemColor="systemOrangeColor"/>
                                                     </backgroundConfiguration>
