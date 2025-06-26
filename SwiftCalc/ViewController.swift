@@ -3,12 +3,14 @@ import UIKit
 class ViewController: UIViewController {
     
     @IBOutlet var allButtons: [UIButton]!
+    
     @IBOutlet weak var displayLabel: UILabel!
+    
     @IBOutlet weak var clearButton: UIButton!
     
-    private var isTypingNumber = false
-    private var firstNumber: Double = 0
-    private var currentOperator: String?
+    private var isTypingNumber = false        // Are we in the middle of typing a number?
+    private var firstNumber: Double = 0       // First operand
+    private var currentOperator: String?      // Current operator pressed (+, −, etc)
     private var expression = ""
     private var justCalculated = false
     
@@ -25,6 +27,7 @@ class ViewController: UIViewController {
             .foregroundColor: UIColor.black
         ])
     }
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -54,6 +57,7 @@ class ViewController: UIViewController {
         guard let number = sender.configuration?.title else { return }
         
         if justCalculated {
+            // Start new expression
             expression = number
             displayLabel.text = expression
             justCalculated = false
@@ -61,40 +65,51 @@ class ViewController: UIViewController {
             return
         }
         
-        // Prevent multiple decimal points
-        if number == "." && expression.contains(".") && !isOperatorPresentInExpression() {
-            return
-        }
-        
         expression += number
         displayLabel.text = expression
         isTypingNumber = true
         
+        // change AC to CE
         clearButton.setAttributedTitle(ceTitle, for: .normal)
+
+
     }
     
     @IBAction func operatorPressed(_ sender: UIButton) {
         guard let operation = sender.configuration?.title else { return }
+        print("Operator pressed: \(operation)")
             
         if operation == "AC" {
-            resetCalculator()
+            // Full clear
+            expression = ""
+            displayLabel.text = "0"
+            isTypingNumber = false
+            
+            // Reset button title to AC just to be safe
+            clearButton.setAttributedTitle(acTitle, for: .normal)
+
             return
         }
         
         if operation == "CE" {
+            print("CE pressed, clearing last entry...")
             removeLastNumberEntry()
+            print("Expression after CE:", expression)
             if expression.isEmpty {
                 clearButton.setAttributedTitle(acTitle, for: .normal)
+
+                print("Expression empty, reset button to AC")
             }
             return
         }
 
         if justCalculated {
+            // Append operator to result
+            justCalculated = false
             if let resultText = displayLabel.text {
                 expression = resultText + operation
                 displayLabel.text = expression
                 clearButton.setAttributedTitle(ceTitle, for: .normal)
-                justCalculated = false
                 return
             }
         }
@@ -108,6 +123,7 @@ class ViewController: UIViewController {
 
         // Handle operators (+, −, ×, ÷)
         if expression.isEmpty {
+            // Only allow minus at start for negative number
             if operation == "−" {
                 expression += operation
                 displayLabel.text = expression
@@ -117,11 +133,14 @@ class ViewController: UIViewController {
 
         if let lastChar = expression.last, isOperator(String(lastChar)) {
             if operation == "−" && (lastChar == "×" || lastChar == "÷") {
+                // Allow minus after multiply/divide for negative number
                 expression += operation
             } else {
+                // Replace last operator with the new one
                 expression = String(expression.dropLast()) + operation
             }
         } else {
+            // Append operator normally
             expression += operation
         }
 
@@ -130,64 +149,43 @@ class ViewController: UIViewController {
     }
     
     private func formatResult(_ result: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.minimumFractionDigits = 0
-        formatter.maximumFractionDigits = 8
-        formatter.numberStyle = .decimal
-        
-        return formatter.string(from: NSNumber(value: result)) ?? "Error"
+        if result.truncatingRemainder(dividingBy: 1) == 0 {
+            return String(Int(result))
+        } else {
+            return String(result)
+        }
     }
     
     private func isOperator(_ char: String) -> Bool {
         return ["+", "−", "×", "÷"].contains(char)
     }
     
-    private func isOperatorPresentInExpression() -> Bool {
-        return expression.contains { char in
-            isOperator(String(char))
-        }
-    }
-    
     private func calculateResult() {
-        // Improved calculation logic to handle multiple operations
-        var components = expression.components(separatedBy: ["+", "−", "×", "÷"])
-        var operators = expression.filter { isOperator(String($0)) }.map { String($0) }
-        
-        // First handle multiplication and division
-        while let multiplyDivideIndex = operators.firstIndex(where: { $0 == "×" || $0 == "÷" }) {
-            guard multiplyDivideIndex < components.count - 1 else { break }
-            
-            let left = Double(components[multiplyDivideIndex]) ?? 0
-            let right = Double(components[multiplyDivideIndex + 1]) ?? 0
-            let op = operators[multiplyDivideIndex]
-            
-            var result: Double = 0
-            switch op {
-            case "×": result = left * right
-            case "÷": result = right != 0 ? left / right : 0
-            default: break
-            }
-            
-            components.replaceSubrange(multiplyDivideIndex...multiplyDivideIndex+1, with: [String(result)])
-            operators.remove(at: multiplyDivideIndex)
-        }
-        
-        // Then handle addition and subtraction
-        var result = Double(components.first ?? "0") ?? 0
-        for (index, op) in operators.enumerated() {
-            guard index + 1 < components.count else { break }
-            let nextNum = Double(components[index + 1]) ?? 0
-            
-            switch op {
-            case "+": result += nextNum
-            case "−": result -= nextNum
-            default: break
+        // Find first operator (left to right)
+        for op in ["+", "-", "×", "÷"] {
+            if let range = expression.range(of: op) {
+                let firstPart = String(expression[..<range.lowerBound])
+                let secondPart = String(expression[range.upperBound...])
+                
+                // Convert to Double
+                if let firstNum = Double(firstPart), let secondNum = Double(secondPart) {
+                    var result: Double = 0
+                    switch op {
+                    case "+": result = firstNum + secondNum
+                    case "-": result = firstNum - secondNum
+                    case "×": result = firstNum * secondNum
+                    case "÷": result = secondNum != 0 ? firstNum / secondNum : 0
+                    default: break
+                    }
+                    displayLabel.text = formatResult(result)
+                    expression = formatResult(result)
+                    isTypingNumber = false
+                    return
+                }
             }
         }
-        
-        displayLabel.text = formatResult(result)
-        expression = formatResult(result)
-        isTypingNumber = false
+        // If no operator found or parse failed
+        displayLabel.text = expression
     }
     
     private func removeLastNumberEntry() {
@@ -196,8 +194,10 @@ class ViewController: UIViewController {
             return
         }
 
+        // Remove the last character (digit, operator, etc.)
         expression.removeLast()
-        
+
+        // If expression is now empty, reset to 0 and return AC mode
         if expression.isEmpty {
             displayLabel.text = "0"
             clearButton.setAttributedTitle(acTitle, for: .normal)
@@ -205,12 +205,7 @@ class ViewController: UIViewController {
             displayLabel.text = expression
         }
     }
+
+
     
-    private func resetCalculator() {
-        expression = ""
-        displayLabel.text = "0"
-        isTypingNumber = false
-        justCalculated = false
-        clearButton.setAttributedTitle(acTitle, for: .normal)
-    }
 }
