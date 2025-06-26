@@ -14,6 +14,17 @@ class ViewController: UIViewController {
         // Do any additional setup after loading the view.
     }
 
-
+    @IBAction func numberPressed(_ sender: UIButton) {
+        if let number = sender .currentTitle {
+            print("Number pressed: \(number)")
+        }
+    }
+    
+    @IBAction func operatorPressed(_ sender: UIButton) {
+        if let operation = sender.currentTitle {
+            print("Operator pressed: \(operation)")
+        }
+    }
+    
 }
 
